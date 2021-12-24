@@ -5,7 +5,7 @@ class Dream:
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.normalize = transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
 
-    def cook(self, vqgan_path):
+    def cook(self, vqgan_path, cut_n=128):
         self.vqgan_config = vqgan_path[0]
         self.vqgan_checkpoint = vqgan_path[1]
         self.model = load_vqgan_model(self.vqgan_config, self.vqgan_checkpoint).to(self.device)
@@ -16,7 +16,7 @@ class Dream:
         self.cut_size = self.perceptor.visual.input_resolution
         self.e_dim = self.model.quantize.e_dim
         self.f = 2**(self.model.decoder.num_resolutions - 1)
-        self.make_cutouts = MakeCutouts(self.cut_size, 64, cut_pow=2.)
+        self.make_cutouts = MakeCutouts(self.cut_size, cut_n, cut_pow=1.)
         
         self.n_toks = self.model.quantize.n_e
         self.z_min = self.model.quantize.embedding.weight.min(dim=0).values[None, :, None, None]
