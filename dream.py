@@ -36,7 +36,7 @@ class Dream:
         pil_image = pil_image.resize((sideX, sideY), Image.LANCZOS)
         self.z, *_ = self.model.encode(TF.to_tensor(pil_image).to(self.device).unsqueeze(0) * 2 - 1)
 
-        z_orig = self.z.clone()
+        self.z_orig = self.z.clone()
         self.z.requires_grad_(True)
         self.opt = optim.Adam([self.z], lr=step_size)
 
