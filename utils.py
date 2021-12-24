@@ -76,14 +76,14 @@ def resample(input, size, align_corners=True):
     return F.interpolate(input, size, mode='bicubic', align_corners=align_corners)
 
 class ReplaceGrad(torch.autograd.Function):
-  @staticmethod
-  def forward(ctx, x_forward, x_backward):
-      ctx.shape = x_backward.shape
-      return x_forward
+    @staticmethod
+    def forward(ctx, x_forward, x_backward):
+        ctx.shape = x_backward.shape
+        return x_forward
 
-  @staticmethod
-  def backward(ctx, grad_in):
-    return None, grad_in.sum_to_size(ctx.shape)
+    @staticmethod
+    def backward(ctx, grad_in):
+        return None, grad_in.sum_to_size(ctx.shape)
 
 replace_grad = ReplaceGrad.apply
 
@@ -100,13 +100,14 @@ class ClampWithGrad(torch.autograd.Function):
         input, = ctx.saved_tensors
         return grad_in * (grad_in * (input - input.clamp(ctx.min, ctx.max)) >= 0), None, None
 
-def vector_quantize(x, codebook):
-  d = x.pow(2).sum(dim=-1, keepdim=True) + codebook.pow(2).sum(dim=1) - 2 * x @ codebook.T
-  indices = d.argmin(-1)
-  x_q = F.one_hot(indices, codebook.shape[0]).to(d.dtype) @ codebook
-  return replace_grad(x_q, x)
-clamp_with_grad = ClampWithGrad.apply
 
+def vector_quantize(x, codebook):
+    d = x.pow(2).sum(dim=-1, keepdim=True) + codebook.pow(2).sum(dim=1) - 2 * x @ codebook.T
+    indices = d.argmin(-1)
+    x_q = F.one_hot(indices, codebook.shape[0]).to(d.dtype) @ codebook
+    return replace_grad(x_q, x)
+
+clamp_with_grad = ClampWithGrad.apply
 
 class Prompt(nn.Module):
     def __init__(self, embed, weight=1., stop=float('-inf')):
@@ -266,8 +267,6 @@ def backwarp(tenInput, tenFlow):
 	tenFlow = torch.cat([ tenFlow[:, 0:1, :, :] / ((tenInput.shape[3] - 1.0) / 2.0), tenFlow[:, 1:2, :, :] / ((tenInput.shape[2] - 1.0) / 2.0) ], 1)
 
 	return torch.nn.functional.grid_sample(input=tenInput, grid=(backwarp_tenGrid[str(tenFlow.shape)] + tenFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border', align_corners=False)
-
-
 
 netNetwork = None
 def estimate(tenOne, tenTwo):
