@@ -1,9 +1,10 @@
 from utils import *
 
 class Dream:
-    def __init__(self) -> None:
+    def __init__(self, isHighVRAM=True) -> None:
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.normalize = transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
+        self.resLimit = 4.5e5 if isHighVRAM else 3.5e5
 
     def cook(self, vqgan_path, cut_n=128):
         self.vqgan_config = vqgan_path[0]

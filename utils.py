@@ -27,12 +27,12 @@ from tqdm.notebook import tqdm, trange
 from taming.models import cond_transformer, vqgan
 from torchvision.transforms import functional as TF
 
-def reduce_res(res, MAX_RES_VALUE=4.5e5, SCALE=1.): # max limit aprx 700x700 = 49e4
+def reduce_res(res, max_res_value=4.5e5, max_res_scale=1.): # max limit aprx 700x700 = 49e4
   x1, y1 = res
-  if x1 * y1 < MAX_RES_VALUE:
+  if x1 * y1 < max_res_value:
     return x1, y1
-  x = (MAX_RES_VALUE**(1/2)) / (x1/y1)**(1/2)
-  return int(SCALE*x1*x/y1), int(SCALE*x)
+  x = (max_res_value**(1/2)) / (x1/y1)**(1/2)
+  return int(max_res_scale*x1*x/y1), int(max_res_scale*x)
 
 def sinc(x):
   return torch.where(x != 0, torch.sin(math.pi * x) / (math.pi * x), x.new_ones([]))
