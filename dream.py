@@ -28,13 +28,7 @@ class Dream:
         self.init_weight = init_weight
         prompts = prompts.split("|")
         
-        size=[size[0], size[1]]
-
-        toksX, toksY = size[0] // self.f, size[1] // self.f
-        sideX, sideY = toksX * self.f, toksY * self.f
-
         pil_image = Image.fromarray((init_image * 1).astype(np.uint8)).convert('RGB')
-        pil_image = pil_image.resize((sideX, sideY), Image.LANCZOS)
         self.z, *_ = self.model.encode(TF.to_tensor(pil_image).to(self.device).unsqueeze(0) * 2 - 1)
 
         self.z_orig = self.z.clone()
@@ -48,7 +42,7 @@ class Dream:
 
         if image_prompts is not None:
             weight, stop = float(image_prompt_weight), float('-inf')
-            img = resize_image(Image.fromarray((image_prompts * 1).astype(np.uint8)).convert('RGB'), (sideX, sideY))
+            img = Image.fromarray((image_prompts * 1).astype(np.uint8)).convert('RGB')
             batch = self.make_cutouts(TF.to_tensor(img).unsqueeze(0).to(self.device))
             embed = self.perceptor.encode_image(self.normalize(batch)).float()
             self.pMs.append(Prompt(embed, weight, stop).to(self.device))
@@ -63,7 +57,7 @@ class Dream:
         except KeyboardInterrupt:
             pass
 
-        return np.float32(TF.to_pil_image(out[0].cpu()))
+        return np.float32(TF.to_pil_image(out[0].cpu()).resize(size))
 
     def train(self, i, iter_n):
         torch.set_grad_enabled(True)
