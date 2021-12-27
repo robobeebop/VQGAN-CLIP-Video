@@ -4,9 +4,9 @@ class Dream:
     def __init__(self, isHighVRAM=True) -> None:
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.normalize = transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
-        self.resLimit = 4.5e5 if isHighVRAM else 3.5e5
+        self.resLimit = 4.2e5 if isHighVRAM else 2.5e5
 
-    def cook(self, vqgan_path, cut_n=128):
+    def cook(self, vqgan_path, cut_n=32, cut_pow=1.):
         self.vqgan_config = vqgan_path[0]
         self.vqgan_checkpoint = vqgan_path[1]
         self.model = load_vqgan_model(self.vqgan_config, self.vqgan_checkpoint).to(self.device)
@@ -17,23 +17,12 @@ class Dream:
         self.cut_size = self.perceptor.visual.input_resolution
         self.e_dim = self.model.quantize.e_dim
         self.f = 2**(self.model.decoder.num_resolutions - 1)
-        self.make_cutouts = MakeCutouts(self.cut_size, cut_n, cut_pow=1.)
+        self.make_cutouts = MakeCutouts(self.cut_size, cutn=cut_n, cut_pow=cut_pow)
         
-        self.n_toks = self.model.quantize.n_e
         self.z_min = self.model.quantize.embedding.weight.min(dim=0).values[None, :, None, None]
         self.z_max = self.model.quantize.embedding.weight.max(dim=0).values[None, :, None, None]
 
-    def deepdream(self,
-                    init_image, 
-                    prompts, 
-                    size, 
-                    iter_n=25, 
-                    init_weight=1, 
-                    step_size=1.5, 
-                    image_prompts=None, 
-                    image_prompt_weight=0,
-                    do_blur=True,
-                    blur_value=(5,5)):
+    def deepdream(self, init_image, prompts, size, iter_n=25, init_weight=1, step_size=0.3, image_prompts=None, image_prompt_weight=0):
         self.pMs = []
         self.init_weight = init_weight
         prompts = prompts.split("|")
