@@ -23,7 +23,17 @@ class Dream:
         self.z_min = self.model.quantize.embedding.weight.min(dim=0).values[None, :, None, None]
         self.z_max = self.model.quantize.embedding.weight.max(dim=0).values[None, :, None, None]
 
-    def deepdream(self, init_image, prompts, size, iter_n=25, init_weight=1, step_size=1.5, image_prompts=None, image_prompt_weight=0):
+    def deepdream(self,
+                    init_image, 
+                    prompts, 
+                    size, 
+                    iter_n=25, 
+                    init_weight=1, 
+                    step_size=1.5, 
+                    image_prompts=None, 
+                    image_prompt_weight=0,
+                    do_blur=True,
+                    blur_value=(5,5)):
         self.pMs = []
         self.init_weight = init_weight
         prompts = prompts.split("|")

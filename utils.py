@@ -317,7 +317,7 @@ def calc_opflow(img1, img2):
     tenOutput = estimate(tenFirst, tenSecond)
     return tenOutput
 
-def get_opflow_image(np_prev_img, frame, np_img, blendflow, blendstatic):
+def get_opflow_image(np_prev_img, frame, np_img, blendflow, blendstatic, threshold=6, do_blur=True, blur_value=(5, 5)):
     np_prev_img = np.float32(np_prev_img)
     frame = np.float32(frame)
     np_img = np.float32(np_img)
@@ -333,12 +333,14 @@ def get_opflow_image(np_prev_img, frame, np_img, blendflow, blendstatic):
 
     framediff = (np_img*(1-blendflow) + frame*blendflow) - np_prev_img
     framediff = cv2.remap(framediff, flow, None, cv2.INTER_LINEAR)
-    framediff = cv2.GaussianBlur(framediff, (5,5), 0)
+    if do_blur:
+        framediff = cv2.GaussianBlur(framediff, blur_value, 0)
+    
     frame_flow = np_img + framediff
 
-    magnitude, angle = cv2.cartToPolar(inv_flow[...,0], inv_flow[...,1])
+    magnitude, _ = cv2.cartToPolar(inv_flow[...,0], inv_flow[...,1])
     norm_mag = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
-    ret, mask = cv2.threshold(norm_mag, 6, 255, cv2.THRESH_BINARY)
+    _, mask = cv2.threshold(norm_mag, threshold, 255, cv2.THRESH_BINARY)
     flow_mask = mask.astype(np.uint8).reshape((h, w, 1))
     frame_flow_masked = cv2.bitwise_and(frame_flow, frame_flow, mask=flow_mask)
 
