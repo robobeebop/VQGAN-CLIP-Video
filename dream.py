@@ -56,7 +56,7 @@ class Dream:
         except KeyboardInterrupt:
             pass
 
-        return np.float32(TF.to_pil_image(out[0].cpu()).resize(size))
+        return np.float32(TF.to_pil_image(out[0].cpu()))
 
     def train(self, i, iter_n):
         torch.set_grad_enabled(True)
